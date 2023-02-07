@@ -1,14 +1,14 @@
 import os
 import subprocess
 
-BUILD_FILES = {'lab21', 'lab22', 'lab23', 'lab24'}
-RUN_FILE = 'lab22'  # TODO specify filename here
+BUILD_FILES = {'file'}
+RUN_FILE = 'file'  # TODO specify filename here
 
 DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
 CONFIGS_FILE_PATH = os.getenv('LOCALAPPDATA') + '\\DOSBox\\dosbox-0.74-3.conf'
 PROJECT_DIR = os.path.abspath(".")
 TASM_PATH = os.path.abspath("tasm")
-TASM_FILES = {'TASM.EXE', 'TD.exe', 'TLINK.exe', 'DPMILOAD.EXE'}
+TASM_FILES = {'TASM.EXE', 'TD.EXE', 'TLINK.EXE', 'DPMILOAD.EXE'}
 
 
 def prepare_build():
@@ -31,7 +31,7 @@ def get_build_commands():
                 build_commands.append('tasm ' + filename)
                 filename = filename.replace('.asm', '')
                 # link obj to executable file
-                if 'tiny' or 'com' in first_line.lower():
+                if any(part in first_line.lower() for part in ['tiny', 'com']):
                     build_commands.append('tlink /t ' + filename + '.obj')
                 else:
                     build_commands.append('tlink ' + filename + '.obj')
@@ -49,7 +49,7 @@ def clean_formats(formats):
 
 def clean_all():
     # removes .map .obj .exe .com
-    clean_formats(['.asm', '.map', 'code.exe', '.obj', '.com'])
+    clean_formats(['.asm', '.map', '.exe', '.obj', '.com'])
 
 
 def clean_non_executable():

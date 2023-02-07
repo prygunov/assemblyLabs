@@ -1,7 +1,5 @@
 .model small
-
 .stack 100h
-
 .data
 qst db 13, 10, 'I am alive! What the season is it now?', 13, 10, '[1] - Spring', 13, 10, '[2] - Summer', 13, 10, '[3] - Autumn', 13, 10, '[4] - Winter', 13, 10, '>> ', '$'
 ans3 db '3'
