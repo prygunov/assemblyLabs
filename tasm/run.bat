@@ -1,3 +1,3 @@
-tasm code.ams
+tasm code.asm
 tlink code.obj
-code.exe
+code

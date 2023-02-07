@@ -1,97 +1,124 @@
-import subprocess
 import os
+import subprocess
 
-SOURCE_FILE = 'hello'  # TODO specify filename here
+BUILD_FILES = {'lab21', 'lab22', 'lab23', 'lab24'}
+RUN_FILE = 'lab22'  # TODO specify filename here
 
 DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
 CONFIGS_FILE_PATH = os.getenv('LOCALAPPDATA') + '\\DOSBox\\dosbox-0.74-3.conf'
 PROJECT_DIR = os.path.abspath(".")
 TASM_PATH = os.path.abspath("tasm")
+TASM_FILES = {'TASM.EXE', 'TD.exe', 'TLINK.exe', 'DPMILOAD.EXE'}
 
 
 def prepare_build():
     os.chdir(PROJECT_DIR)
-    os.system('copy source\\' + SOURCE_FILE + '.asm' + ' tasm\\code.asm')
+    for file in BUILD_FILES:
+        subprocess.call('copy source\\' + file + '.asm' + ' tasm\\' + file + '.asm', shell=True,
+                        stdout=subprocess.DEVNULL)
+    subprocess.call('copy tasm\\' + RUN_FILE + '.asm' + ' tasm\\code.asm', shell=True, stdout=subprocess.DEVNULL)
     os.chdir(TASM_PATH)
 
 
-def clean_build():
-    # removes .map .obj .exe .com
-    formats = ['.asm', '.map', 'code.exe', '.obj', '.com']
+def get_build_commands():
+    build_commands = []
+    for file in os.listdir("."):
+        if file.endswith(".asm"):
+            with open(file) as text:
+                first_line = text.readline()
+                filename = text.name
+                # create obj
+                build_commands.append('tasm ' + filename)
+                filename = filename.replace('.asm', '')
+                # link obj to executable file
+                if 'tiny' or 'com' in first_line.lower():
+                    build_commands.append('tlink /t ' + filename + '.obj')
+                else:
+                    build_commands.append('tlink ' + filename + '.obj')
+    return build_commands
+
+
+def clean_formats(formats):
     files = os.listdir(TASM_PATH)
 
     for item in files:
-        if any(s in item.lower() for s in formats):
-            os.remove(os.path.join(TASM_PATH, item))
+        if item not in TASM_FILES:
+            if any(s in item.lower() for s in formats):
+                os.remove(os.path.join(TASM_PATH, item))
 
 
+def clean_all():
+    # removes .map .obj .exe .com
+    clean_formats(['.asm', '.map', 'code.exe', '.obj', '.com'])
+
+
+def clean_non_executable():
+    # removes .map .obj
+    clean_formats(['.map', '.obj'])
+
+
+# read initial config
 try:
-    configs_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='r')
+    config_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='r')
 except Exception as e:
-    configs_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='w')
+    config_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='w')
     with open(CONFIGS_FILE_PATH, mode='r') as configs_file:
-        configs_file_init.writelines(configs_file.readlines())
-    configs_file_init.close()
-    configs_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='r')
-configs_init = configs_file_init.readlines()
-configs_file_init.close()
+        config_file_init.writelines(configs_file.readlines())
+    config_file_init.close()
+    config_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='r')
+config_init = config_file_init.readlines()
+config_file_init.close()
 
-intro = ['mount D ' + TASM_PATH,
-         'D:']
-commands = {'c': ['tasm code.asm',
-                  'tlink /t code.obj'],
-            'x': ['tasm code.asm',
-                  'tlink code.obj'],
-            'rc': ['code.com'],
-            'rx': ['code.exe'],
-            'dc': ['td code.com'],
-            'dx': ['td code.exe']}
-depended_commands = ['r', 'd']
-outro = []
-boot_conf = str(input(
-    'Welcome, are you too lazy?\n' +
-    'You have chosen the right way!\n' +
-    'c - build to .com\n' +
-    'x - build to .exe\n' +
+# define commands for DOSBOX
+start_commands = ['mount D ' + TASM_PATH,
+                  'D:']
+commands = {'r': ['code'],
+            'd': ['td code']}
+end_commands = []
+
+run_args = ['r', 'd']
+
+args = str(input(
+    'DOSBOX TASM starter v. 0.1\n' +
+    'Chosen file for running: ' + RUN_FILE + ', build files: ' + str(BUILD_FILES) + '\n' +
     'r - run\n' +
     'd - debug\n' +
-    'q - exit\n' +
+    'q - exit with clean\n' +
     'type your run configuration:\n'))
 
-compiler_mode = ''
-while boot_conf != 'q':
-    clean_build()
+while args != 'q':
     prepare_build()
-    if boot_conf.strip() == '':
-        boot_conf = input()
-        pass
+    config = config_init.copy()
 
-    configs = configs_init.copy()
-    for intro_com in intro:
-        configs.append(intro_com + '\n')
-    for boot_coms_abbr in boot_conf:
-        if boot_coms_abbr in ['c', 'x']:
-            compiler_mode = boot_coms_abbr
-        elif boot_coms_abbr in depended_commands:
-            if compiler_mode in ['c', 'x']:
-                boot_coms_abbr += compiler_mode
-            else:
-                print('Please, rebuild your project firstly\n')
-                break
+    for command in start_commands:
+        config.append(command + '\n')
+    for command in get_build_commands():
+        config.append(command + '\n')
+
+    for argument in args:
         try:
-            for boot_com in commands[boot_coms_abbr]:
-                configs.append(boot_com + '\n')
+            for command in commands[argument]:
+                config.append(command + '\n')
         except:
             print('Unexpected abbr\n')
             break
-    for outro_com in outro:
-        configs.append(outro_com + '\n')
-    with open(CONFIGS_FILE_PATH, mode='w') as config_file:
-        config_file.writelines(configs)
-    subprocess.run(DOSBOX_PATH)
-    clean_build()
-    boot_conf = input()
-with open(CONFIGS_FILE_PATH, mode='w') as config_file:
-    config_file.writelines(configs_init)
 
+    for command in end_commands:
+        config.append(command + '\n')
+
+    with open(CONFIGS_FILE_PATH, mode='w') as config_file:
+        config_file.writelines(config)
+
+    clean_non_executable()
+    process = subprocess.Popen(DOSBOX_PATH)
+
+    args = input()
+    while args.strip() == '':
+        args = input()
+    process.kill()
+
+with open(CONFIGS_FILE_PATH, mode='w') as config_file:
+    config_file.writelines(config_init)
+
+clean_all()
 os.remove(CONFIGS_FILE_PATH + '_copy.conf')
