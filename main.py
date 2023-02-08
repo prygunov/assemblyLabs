@@ -26,13 +26,13 @@ def get_build_commands():
     for file in os.listdir("."):
         if file.endswith(".asm"):
             with open(file) as text:
-                first_line = text.readline()
+                program = text.read().upper()
                 filename = text.name
                 # create obj
                 build_commands.append('tasm ' + filename)
                 filename = filename.replace('.asm', '')
                 # link obj to executable file
-                if any(part in first_line.lower() for part in ['tiny', 'com']):
+                if 'ORG' in program:
                     build_commands.append('tlink /t ' + filename + '.obj')
                 else:
                     build_commands.append('tlink ' + filename + '.obj')
