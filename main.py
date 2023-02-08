@@ -44,7 +44,7 @@ def clean_formats(formats):
 
     for item in files:
         if item not in TASM_FILES:
-            if any(s in item.lower() for s in formats):
+            if any(s.lower() in item.lower() for s in formats):
                 os.remove(os.path.join(TASM_PATH, item))
 
 
