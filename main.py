@@ -113,8 +113,8 @@ while args != 'q':
 
     clean_non_executable()
     process = subprocess.Popen(DOSBOX_PATH)
-    if args == 'h':
-        subprocess.call([HIEW_PATH, TASM_PATH])
+    #if args == 'h':
+      #  subprocess.call([HIEW_PATH])
 
     args = input()
     while args.strip() == '':
