@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-BUILD_FILES = {'lab21', 'lab22', 'lab23', 'lab24'}
+BUILD_FILES = {'lab21','input', 'lab23', 'lab24'}
 RUN_FILE = 'lab24'  # TODO specify filename here
 
 DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'

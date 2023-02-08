@@ -31,7 +31,7 @@ terminate:
 mov ax, 4C00h
 int 21h
 
-file db "text",0 ;****PLACE THE FILE IN C:\EMU8086\vdrive\C***
+file db "text",0 ;
 buf db 99 dup(0)
 counter db 0
 
