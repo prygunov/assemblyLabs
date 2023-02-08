@@ -1,10 +1,11 @@
 import os
 import subprocess
 
-BUILD_FILES = {'file'}
-RUN_FILE = 'file'  # TODO specify filename here
+BUILD_FILES = {'lab21', 'lab22', 'lab23', 'lab24'}
+RUN_FILE = 'lab24'  # TODO specify filename here
 
 DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
+HIEW_PATH = os.path.abspath("hiew") + '\\hiew32.exe'
 CONFIGS_FILE_PATH = os.getenv('LOCALAPPDATA') + '\\DOSBox\\dosbox-0.74-3.conf'
 PROJECT_DIR = os.path.abspath(".")
 TASM_PATH = os.path.abspath("tasm")
@@ -76,13 +77,14 @@ commands = {'r': ['code'],
             'd': ['td code']}
 end_commands = []
 
-run_args = ['r', 'd']
+run_args = ['r', 'd', 'h']
 
 args = str(input(
     'DOSBOX TASM starter v. 0.1\n' +
     'Chosen file for running: ' + RUN_FILE + ', build files: ' + str(BUILD_FILES) + '\n' +
     'r - run\n' +
     'd - debug\n' +
+    'h - hiew for running program\n' +
     'q - exit with clean\n' +
     'type your run configuration:\n'))
 
@@ -111,6 +113,8 @@ while args != 'q':
 
     clean_non_executable()
     process = subprocess.Popen(DOSBOX_PATH)
+    if args == 'h':
+        subprocess.call([HIEW_PATH, TASM_PATH])
 
     args = input()
     while args.strip() == '':

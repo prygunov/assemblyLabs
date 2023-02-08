@@ -6,5 +6,5 @@ start:   mov  ah, 9                ; Номер функции DOS - в AH
          int  21h                  ; Вызов системной функции DOS
          mov  ax,4C00h
          int  21h                  ; Завершение программы
-message  db    "Hello World!", 0Dh, 0Ah, '$' ; Строка для вывода
+message  db   "Hello World!", 0Dh, 0Ah, '$' ; Строка для вывода
          end  start                ; Конец программы
