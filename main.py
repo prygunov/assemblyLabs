@@ -71,7 +71,7 @@ config_init = config_file_init.readlines()
 config_file_init.close()
 
 # define commands for DOSBOX
-start_commands = ['mount D ' + TASM_PATH,
+start_commands = ['mount D "' + TASM_PATH + '"',
                   'D:']
 commands = {'r': ['code'],
             'd': ['td code']}
