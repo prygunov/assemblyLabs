@@ -1,15 +1,18 @@
 import os
 import subprocess
 
-BUILD_FILES = {'lab21','input', 'lab23', 'lab24'}
-RUN_FILE = 'lab24'  # TODO specify filename here
+LAB_SETUPS = ((('idr',), 'idr'),
+      (('lab21','input', 'lab23', 'lab24'), 'lab24'),
+      (('lab3_victim', 'lab3_infector'), 'lab3_victim'))
+lab_num = int(input('Enter lab number >> '))
+BUILD_FILES, RUN_FILE = LAB_SETUPS[lab_num - 1]
 
 DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
 HIEW_PATH = os.path.abspath("hiew") + '\\hiew32.exe'
 CONFIGS_FILE_PATH = os.getenv('LOCALAPPDATA') + '\\DOSBox\\dosbox-0.74-3.conf'
 PROJECT_DIR = os.path.abspath(".")
 TASM_PATH = os.path.abspath("tasm")
-TASM_FILES = {'TASM.EXE', 'TD.EXE', 'TLINK.EXE', 'DPMILOAD.EXE'}
+TASM_FILES = ('TASM.EXE', 'TD.EXE', 'TLINK.EXE', 'DPMILOAD.EXE')
 
 
 def prepare_build():
