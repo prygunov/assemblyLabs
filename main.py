@@ -1,7 +1,7 @@
 import os
 import subprocess
 
-BUILD_FILES = {'lab21', 'lab22', 'lab23', 'lab24'}
+BUILD_FILES = {'lab21','input', 'lab23', 'lab24'}
 RUN_FILE = 'lab24'  # TODO specify filename here
 
 DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
@@ -26,13 +26,13 @@ def get_build_commands():
     for file in os.listdir("."):
         if file.endswith(".asm"):
             with open(file) as text:
-                first_line = text.readline()
+                program = text.read().upper()
                 filename = text.name
                 # create obj
                 build_commands.append('tasm ' + filename)
                 filename = filename.replace('.asm', '')
                 # link obj to executable file
-                if any(part in first_line.lower() for part in ['tiny', 'com']):
+                if 'ORG' in program:
                     build_commands.append('tlink /t ' + filename + '.obj')
                 else:
                     build_commands.append('tlink ' + filename + '.obj')
@@ -44,7 +44,7 @@ def clean_formats(formats):
 
     for item in files:
         if item not in TASM_FILES:
-            if any(s in item.lower() for s in formats):
+            if any(s.lower() in item.lower() for s in formats):
                 os.remove(os.path.join(TASM_PATH, item))
 
 
@@ -113,8 +113,8 @@ while args != 'q':
 
     clean_non_executable()
     process = subprocess.Popen(DOSBOX_PATH)
-    if args == 'h':
-        subprocess.call([HIEW_PATH, TASM_PATH])
+    #if args == 'h':
+      #  subprocess.call([HIEW_PATH])
 
     args = input()
     while args.strip() == '':
