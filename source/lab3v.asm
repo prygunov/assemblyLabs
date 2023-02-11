@@ -11,7 +11,7 @@ start:
     int 21h
 
     ; exit
-    mov ah, 4ch
+    mov ah, 4Ch
     int 21h
 
 end start
