@@ -3,7 +3,7 @@ import subprocess
 
 LAB_SETUPS = ((('idr',), 'idr'),
       (('lab21','input', 'lab23', 'lab24'), 'lab24'),
-      (('lab3_victim', 'lab3_infector'), 'lab3_victim'))
+      (('lab3i'), 'lab3i'))
 lab_num = int(input('Enter lab number >> '))
 BUILD_FILES, RUN_FILE = LAB_SETUPS[lab_num - 1]
 
