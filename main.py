@@ -1,11 +1,12 @@
 import os
 import subprocess
 
-LAB_SETUPS = ((('idr',), 'idr'),
-      (('lab21','input', 'lab23', 'lab24'), 'lab24'),
-      (('lab3v','lab3i'), 'lab3i'))
-lab_num = int(input('Enter lab number >> '))
-BUILD_FILES, RUN_FILE = LAB_SETUPS[lab_num - 1]
+LAB_SETUPS = {'1': (('idr',), 'idr'),
+              '2': (('lab21','input', 'lab23', 'lab24'), 'lab24'),
+              '3': (('lab3v','lab3i'), 'lab3i'),
+              'rofl': (('rofl',), 'rofl')}
+lab_num = input('Enter lab number >> ')
+BUILD_FILES, RUN_FILE = LAB_SETUPS[lab_num]
 
 DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
 HIEW_PATH = os.path.abspath("hiew") + '\\hiew32.exe'
