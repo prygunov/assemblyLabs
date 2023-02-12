@@ -85,7 +85,7 @@ run_args = ['r', 'd', 'h']
 
 args = str(input(
     'DOSBOX TASM starter v. 0.1\n' +
-    'Chosen file for running: ' + RUN_FILE + ', build files: ' + str(BUILD_FILES) + '\n' +
+    'Chosen file for running: ' + RUN_FILE + ', build files: ' + ', '.join(BUILD_FILES) + '\n' +
     'r - run\n' +
     'd - debug\n' +
     'h - hiew for running program\n' +
