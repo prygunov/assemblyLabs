@@ -11,7 +11,7 @@ start:
     mov ah, 4ch
     int 21h
 
-    
-    msg db 'Hello world!', 13, 10,'$'
+msg:
+    db 'Hello world!', 13, 10,'$'
 
 end start

