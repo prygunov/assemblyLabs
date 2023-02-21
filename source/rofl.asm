@@ -2,6 +2,8 @@
 .code
 org 100h
 start:
+
+
     ;print dx
     lea dx, msg
     mov ah, 09h
@@ -12,6 +14,6 @@ start:
     int 21h
 
 msg:
-    db 'Hello world!', 13, 10,'$'
+    db 'victim', 13, 10,'$'
 
 end start
