@@ -3,9 +3,6 @@
 org 100h
 start:
 
-    ; db 0e9h, 1, 0 ; word-pointer jump
-    ; db 0ffh ; (⌐■_■)
-
 hardcode:
 
     mov bp, 0
@@ -63,6 +60,8 @@ code:
     jmp ax
 
 file_err_skip:
+
+    mov ax, file.ftime
 
     ; moving carret to the end to get the payload offset
     mov cx, 0
