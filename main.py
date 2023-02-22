@@ -1,5 +1,4 @@
 import os
-import shutil
 import subprocess
 
 LAB_SETUPS = {'1': (('idr',), 'idr'),
@@ -11,73 +10,12 @@ LAB_SETUPS = {'1': (('idr',), 'idr'),
 lab_num = input('Enter lab number >> ')
 BUILD_FILES, RUN_FILE = LAB_SETUPS[lab_num]
 
-DOSBOX_DIR = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
-HIEW_DIR = os.path.abspath("hiew") + '\\hiew32.exe'
-CONFIGS_FILE_DIR = os.getenv('LOCALAPPDATA') + '\\DOSBox'
-CONFIGS_FILE = os.getenv('LOCALAPPDATA') + '\\DOSBox\\dosbox-0.74-3.conf'
-CONFIGS_FILE_BACKUP = os.getenv('LOCALAPPDATA') + '\\DOSBox\\dosbox-0.74-3_backup.conf'
+DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
+HIEW_PATH = os.path.abspath("hiew") + '\\hiew32.exe'
+CONFIGS_FILE_PATH = os.getenv('LOCALAPPDATA') + '\\DOSBox\\dosbox-0.74-3.conf'
 PROJECT_DIR = os.path.abspath(".")
-SOURCE_DIR = os.path.abspath("source")
-TASM_DIR = os.path.abspath("tasm")
-TASM_FILES = ('debug.bat',
-              'DPMI16BI.OVL',
-              'DPMILOAD.EXE',
-              'DPMIMEM.DLL',
-              'run.bat',
-              'TASM.EXE',
-              'TD.EXE',
-              'TLINK.EXE')
-
-
-class LabSetup:
-    files_to_copy: tuple[str]
-    files_to_build: tuple[str]
-    file_to_run: str
-    configs_init: list[str]
-
-
-    def __init__(self,
-                 files_to_copy: tuple[str],
-                 files_to_build: tuple[str],
-                 file_to_run: str):
-        self.files_to_copy = files_to_copy
-        if files_to_build is None:
-            self.files_to_build = self.files_to_copy
-        else:
-            self.files_to_build = files_to_build
-        self.file_to_run = file_to_run
-
-    
-    def restore_config_file(self):
-        os.chdir(CONFIGS_FILE_DIR)
-        if CONFIGS_FILE_BACKUP in os.listdir():
-            with open(CONFIGS_FILE_BACKUP) as configs_backup:
-                self.configs_init = configs_backup.readlines()
-        with open(CONFIGS_FILE, mode='w') as configs_file:
-            config_file.writelines(self.configs_init)
-            
-
-    def clear_tasm_dir():
-        os.chdir(TASM_DIR)
-        for file in os.listdir():
-            if file not in TASM_FILES:
-                os.remove(file)
-
-
-    def copy_files(self):
-        os.chdir(PROJECT_DIR)
-        for file in self.files_to_copy:
-            shutil.copy(os.path.join(SOURCE_DIR, file))
-
-
-    def build_files(self):
-        os.chdir(PROJECT_DIR)
-        for file in self.files_to_copy:
-            shutil.copy(os.path.join(SOURCE_DIR, file))
-
-
-    def build_lab_files(self):
-        pass
+TASM_PATH = os.path.abspath("tasm")
+TASM_FILES = ('TASM.EXE', 'TD.EXE', 'TLINK.EXE', 'DPMILOAD.EXE')
 
 
 def prepare_build():
@@ -86,7 +24,7 @@ def prepare_build():
         subprocess.call('copy source\\' + file + '.asm' + ' tasm\\' + file + '.asm', shell=True,
                         stdout=subprocess.DEVNULL)
     subprocess.call('copy tasm\\' + RUN_FILE + '.asm' + ' tasm\\code.asm', shell=True, stdout=subprocess.DEVNULL)
-    os.chdir(TASM_DIR)
+    os.chdir(TASM_PATH)
 
 
 def get_build_commands():
@@ -108,12 +46,12 @@ def get_build_commands():
 
 
 def clean_formats(formats):
-    files = os.listdir(TASM_DIR)
+    files = os.listdir(TASM_PATH)
 
     for item in files:
         if item not in TASM_FILES:
             if any(s.lower() in item.lower() for s in formats):
-                os.remove(os.path.join(TASM_DIR, item))
+                os.remove(os.path.join(TASM_PATH, item))
 
 
 def clean_all():
@@ -128,18 +66,18 @@ def clean_non_executable():
 
 # read initial config
 try:
-    config_file_init = open(CONFIGS_FILE + '_copy.conf', mode='r')
+    config_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='r')
 except Exception as e:
-    config_file_init = open(CONFIGS_FILE + '_copy.conf', mode='w')
-    with open(CONFIGS_FILE, mode='r') as configs_file:
+    config_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='w')
+    with open(CONFIGS_FILE_PATH, mode='r') as configs_file:
         config_file_init.writelines(configs_file.readlines())
     config_file_init.close()
-    config_file_init = open(CONFIGS_FILE + '_copy.conf', mode='r')
+    config_file_init = open(CONFIGS_FILE_PATH + '_copy.conf', mode='r')
 config_init = config_file_init.readlines()
 config_file_init.close()
 
 # define commands for DOSBOX
-start_commands = ['mount D "' + TASM_DIR + '"',
+start_commands = ['mount D "' + TASM_PATH + '"',
                   'D:']
 commands = {'r': ['code'],
             'd': ['td code']}
@@ -176,21 +114,21 @@ while args != 'q':
     for command in end_commands:
         config.append(command + '\n')
 
-    with open(CONFIGS_FILE, mode='w') as config_file:
+    with open(CONFIGS_FILE_PATH, mode='w') as config_file:
         config_file.writelines(config)
 
     clean_non_executable()
-    process = subprocess.Popen(DOSBOX_DIR)
+    process = subprocess.Popen(DOSBOX_PATH)
     #if args == 'h':
-      #  subprocess.call([HIEW_DIR])
+      #  subprocess.call([HIEW_PATH])
 
     args = input()
     while args.strip() == '':
         args = input()
     process.kill()
 
-with open(CONFIGS_FILE, mode='w') as config_file:
+with open(CONFIGS_FILE_PATH, mode='w') as config_file:
     config_file.writelines(config_init)
 
 clean_all()
-os.remove(CONFIGS_FILE + '_copy.conf')
+os.remove(CONFIGS_FILE_PATH + '_copy.conf')
