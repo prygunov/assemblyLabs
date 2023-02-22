@@ -4,7 +4,7 @@ import subprocess
 LAB_SETUPS = {'1': (('idr',), 'idr'),
               '2': (('lab21','input', 'lab23', 'lab24'), 'lab24'),
               '3': (('lab3v','lab3i'), 'lab3i'),
-              '3+': (('lab3p', 'lab3v'), 'lab3p'),
+              '3+': (('lab3p', 'avic', 'bvic'), 'lab3p'),
               '3+d': (('lab3p',), 'lab3p'),
               'rofl': (('rofl',), 'rofl')}
 lab_num = input('Enter lab number >> ')
