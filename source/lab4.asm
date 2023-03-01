@@ -160,7 +160,7 @@ int 21h
 ; data
 old_ip dw offset exe_end
 old_cs dw 0
-fmask db '*.exe',0
+fmask db 'avic4.exe',0
 header equ $
 vir_len equ $-start
 end start
