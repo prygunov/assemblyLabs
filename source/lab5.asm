@@ -61,7 +61,14 @@ call to_int21-100h
 restore:
 pop es
 pop ds
-popa
+pop DI  ; popa ↓
+pop SI
+pop BP
+add SP, 2
+pop BX
+pop DX
+pop CX
+pop AX  ; popa ↑
 
 to_int21:
 Jump_Old_Int21 db 0eah
@@ -77,7 +84,14 @@ iret
 Check_4b:
 cmp ax,04b00h
 jnz to_int21
-pusha
+push AX  ; pusha ↓
+push CX
+push DX
+push BX
+push SP
+push BP
+push SI
+push DI  ; pusha ↑
 push ds
 push es
 
