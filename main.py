@@ -7,7 +7,7 @@ LAB_SETUPS = {'1': (('idr',), 'idr'),
               '3+': (('lab3p', 'avic', 'bvic'), 'lab3p'),
               '3+d': (('lab3p',), 'lab3p'),
               '4': (('lab4', 'avicx', 'bvicx'), 'lab4'),
-              '5': (('lab5',), 'lab5'),
+              '5': (('lab5', 'avic'), 'lab5'),
               'rofl': (('rofl',), 'rofl'),
               't': (('test',), 'test')}
 lab_num = input('Enter lab number >> ')
