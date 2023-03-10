@@ -8,6 +8,7 @@ LAB_SETUPS = {'1': (('idr',), 'idr'),
               '3+d': (('lab3p',), 'lab3p'),
               '4': (('lab4', 'avicx', 'bvicx'), 'lab4'),
               '5': (('lab5', 'avic'), 'lab5'),
+              '6': (('lab6', 'lab3b', 'avic', 'bvic'), None),
               'rofl': (('rofl',), 'rofl'),
               't': (('test',), 'test')}
 lab_num = input('Enter lab number >> ')
@@ -26,7 +27,8 @@ def prepare_build():
     for file in BUILD_FILES:
         subprocess.call('copy source\\' + file + '.asm' + ' tasm\\' + file + '.asm', shell=True,
                         stdout=subprocess.DEVNULL)
-    subprocess.call('copy tasm\\' + RUN_FILE + '.asm' + ' tasm\\code.asm', shell=True, stdout=subprocess.DEVNULL)
+    if RUN_FILE is not None:
+        subprocess.call('copy tasm\\' + RUN_FILE + '.asm' + ' tasm\\code.asm', shell=True, stdout=subprocess.DEVNULL)
     os.chdir(TASM_PATH)
 
 
@@ -90,7 +92,7 @@ run_args = ['r', 'd', 'h']
 
 args = str(input(
     'DOSBOX TASM starter v. 0.1\n' +
-    'Chosen file for running: ' + RUN_FILE + ', build files: ' + ', '.join(BUILD_FILES) + '\n' +
+    'Chosen file for running: ' + (RUN_FILE if RUN_FILE is not None else 'None') + ', build files: ' + ', '.join(BUILD_FILES) + '\n' +
     'r - run\n' +
     'd - debug\n' +
     'h - hiew for running program\n' +
