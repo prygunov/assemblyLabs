@@ -16,7 +16,7 @@ BUILD_FILES, RUN_FILE = LAB_SETUPS[lab_num]
 
 DOSBOX_PATH = 'C:\\Program Files (x86)\\DOSBox-0.74-3\\DOSBox.exe'
 HIEW_PATH = os.path.abspath("hiew") + '\\hiew32.exe'
-CONFIGS_FILE_PATH = os.getenv('LOCALAPPDATA') + '\\DOSBox\\dosbox-0.74-3.conf'
+CONFIGS_FILE_PATH = str(os.getenv('LOCALAPPDATA')) + '\\DOSBox\\dosbox-0.74-3.conf'
 PROJECT_DIR = os.path.abspath(".")
 TASM_PATH = os.path.abspath("tasm")
 TASM_FILES = ('TASM.EXE', 'TD.EXE', 'TLINK.EXE', 'DPMILOAD.EXE')
@@ -40,7 +40,7 @@ def get_build_commands():
                 program = text.read().upper()
                 filename = text.name
                 # create obj
-                build_commands.append('tasm ' + filename)
+                build_commands.append('tasm /m ' + filename)
                 filename = filename.replace('.asm', '')
                 # link obj to executable file
                 if 'ORG' in program:
