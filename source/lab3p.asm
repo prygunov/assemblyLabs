@@ -220,7 +220,7 @@ procedures:
         add bx, dx
         add bx, 13
         sub bx, cx
-        cmp byte ptr[bx], 0
+        cmp byte ptr[bx], '$'
         jz str_c2f_ch
         loop str_c2f_lp
         str_c2f_popret:
@@ -228,7 +228,7 @@ procedures:
         pop cx
         ret
         str_c2f_ch:
-        mov [bx], '$'
+        mov [bx], 0
         jmp str_c2f_popret
     str_c2f endp
 
