@@ -83,7 +83,7 @@ str_f2c proc
     pop cx
     ret
     str_f2c_ch:
-    mov [bx], '$'
+    mov byte ptr[bx], '$'
     jmp str_f2c_popret
 str_f2c endp
 
@@ -103,7 +103,7 @@ str_c2f proc
     pop cx
     ret
     str_c2f_ch:
-    mov [bx], 0
+    mov byte ptr[bx], 0
     jmp str_c2f_popret
 str_c2f endp
 
@@ -122,7 +122,6 @@ file DTAFileInfo <>
 
 file_descriptor dw, ?
 file_mask db '*.exe*', 0
-header db 1ah dup(0)
-teststr db 'qwe', 0
+header db 1ah dup(?)
 
 end start
