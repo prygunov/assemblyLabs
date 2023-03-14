@@ -1,9 +1,11 @@
 import os
 import subprocess
 
-LAB_SETUPS = {'1': (('idr',), 'idr'),
-              '2': (('lab21','input', 'lab23', 'lab24'), 'lab24'),
-              '3': (('avic','lab3i'), 'lab3i'),
+LAB_SETUPS = {'hello': (('hello',), 'hello'),
+              '11': (('lab11',), 'lab11'),
+              '1': (('idr',), 'idr'),
+              '2': (('lab21', 'input', 'lab23', 'lab24'), 'lab24'),
+              '3': (('avic', 'lab3i'), 'lab3i'),
               '3+': (('lab3p', 'avic', 'bvic'), 'lab3p'),
               '3+d': (('lab3p',), 'lab3p'),
               '4': (('lab4', 'avicx', 'bvicx'), 'lab4'),
@@ -11,6 +13,7 @@ LAB_SETUPS = {'1': (('idr',), 'idr'),
               '6': (('lab6', 'lab3b', 'avic', 'bvic'), None),
               'rofl': (('rofl',), 'rofl'),
               't': (('test',), 'test')}
+
 lab_num = input('Enter lab number >> ')
 BUILD_FILES, RUN_FILE = LAB_SETUPS[lab_num]
 
@@ -92,7 +95,8 @@ run_args = ['r', 'd', 'h']
 
 args = str(input(
     'DOSBOX TASM starter v. 0.1\n' +
-    'Chosen file for running: ' + (RUN_FILE if RUN_FILE is not None else 'None') + ', build files: ' + ', '.join(BUILD_FILES) + '\n' +
+    'Chosen file for running: ' + (RUN_FILE if RUN_FILE is not None else 'None') + ', build files: ' + ', '.join(
+        BUILD_FILES) + '\n' +
     'r - run\n' +
     'd - debug\n' +
     'h - hiew for running program\n' +
@@ -124,8 +128,8 @@ while args != 'q':
 
     clean_non_executable()
     process = subprocess.Popen(DOSBOX_PATH)
-    #if args == 'h':
-      #  subprocess.call([HIEW_PATH])
+    # if args == 'h':
+    #  subprocess.call([HIEW_PATH])
 
     args = input()
     while args.strip() == '':
