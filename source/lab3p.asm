@@ -9,9 +9,6 @@ hardcode:
 
 code:
 
-    ; checking the indexing shift
-    mov ax, [bp + test1]
-
     ; reverting first bytes
     push bx
     mov bx, 100h
