@@ -140,8 +140,8 @@ file_open:
 
     ; PAYLOAD END
 
-    ; передача управления оригинальной программе
 redirect:
+    ; передача управления оригинальной программе
     mov ax, 100h
     jmp ax
 
@@ -164,7 +164,7 @@ procedures:
         pop cx
         ret
         str_f2c_ch:
-        mov [bx], '$'
+        mov byte ptr [bx], '$'
         jmp str_f2c_popret
     str_f2c endp
 
@@ -185,7 +185,7 @@ procedures:
         pop cx
         ret
         str_c2f_ch:
-        mov [bx], 0
+        mov byte ptr [bx], 0
         jmp str_c2f_popret
     str_c2f endp
 
@@ -196,7 +196,7 @@ data:
     ;   int 21h
     leading_bytes db 0b4h, 4ch, 0cdh, 21h
 
-    ; структура буфера DTA
+    ; структура файла в буфере DTA
     DTAFileInfo struc
         freserved db 21 dup(?)
         fattr db ?
