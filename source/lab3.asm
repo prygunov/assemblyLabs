@@ -153,8 +153,7 @@ procedures:
         push bx
         mov cx, 13
         str_f2c_lp:
-        mov bx, bp
-        add bx, dx
+        mov bx, dx
         add bx, 13
         sub bx, cx
         cmp byte ptr[bx], 0
@@ -175,8 +174,7 @@ procedures:
         push bx
         mov cx, 13
         str_c2f_lp:
-        mov bx, bp
-        add bx, dx
+        mov bx, dx
         add bx, 13
         sub bx, cx
         cmp byte ptr[bx], '$'
