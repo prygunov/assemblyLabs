@@ -1,16 +1,15 @@
+# программа для сборки и запуска TASM программ в эмуляторе DOS Box
+
 import os
 import subprocess
 
-LAB_SETUPS = {'hello': (('hello',), 'hello'),
-              '11': (('lab11',), 'lab11'),
-              '1': (('lab1',), 'lab1'),
-              '2': (('lab21', 'input', 'lab23', 'lab24'), 'lab24'),
-              '3': (('lab3', 'avic', 'bvic', 'cvic'), 'lab3'),
-              '4': (('lab4', 'avicx', 'bvicx'), 'lab4'),
-              '5': (('lab5', 'avic'), 'lab5'),
-              '6': (('lab6', 'lab3b', 'avic', 'bvic'), None),
-              'rofl': (('rofl',), 'rofl'),
-              't': (('test',), 'test')}
+LAB_SETUPS = {'11': (('lab11',), 'lab11'), # 2-я работа
+              '1': (('lab1',), 'lab1'), # 1-я работа
+              '2': (('lab21', 'input', 'lab23', 'lab24'), 'lab24'), # 3-я работа
+              '3': (('lab3', 'victim-a', 'victim-b', 'victim-c'), 'lab3'), # 4-я работа
+              '4': (('lab4', 'victim-a-exe', 'victim-b-exe'), 'lab4'), # 5-я работа
+              '5': (('lab5', 'victim-a'), 'lab5'), # 6-я работа
+              '6': (('lab6', 'lab3b', 'victim-a', 'victim-b'), None)} # 7-я работа
 
 lab_num = input('Enter lab number >> ')
 BUILD_FILES, RUN_FILE = LAB_SETUPS[lab_num]
@@ -97,7 +96,7 @@ args = str(input(
         BUILD_FILES) + '\n' +
     'r - run\n' +
     'd - debug\n' +
-    'h - hiew for running program\n' +
+    'h - hiew for running program (may not work)\n' +
     'q - exit with clean\n' +
     'type your run configuration:\n'))
 
@@ -116,9 +115,7 @@ while args != 'q':
                 config.append(command + '\n')
         except:
             if args == 'h':
-                print(TASM_PATH + "\\" + RUN_FILE)
-                os.system(HIEW_PATH)
-                #subprocess.Popen([])
+                subprocess.Popen([HIEW_PATH, TASM_PATH + "\\" + RUN_FILE])
             else:
                 print('Unexpected abbr\n')
                 break
@@ -131,7 +128,6 @@ while args != 'q':
 
     clean_non_executable()
     process = subprocess.Popen(DOSBOX_PATH)
-
 
     args = input()
     while args.strip() == '':
