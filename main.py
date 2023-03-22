@@ -3,7 +3,7 @@ import subprocess
 
 LAB_SETUPS = {'hello': (('hello',), 'hello'),
               '11': (('lab11',), 'lab11'),
-              '1': (('idr',), 'idr'),
+              '1': (('lab1',), 'lab1'),
               '2': (('lab21', 'input', 'lab23', 'lab24'), 'lab24'),
               '3': (('lab3', 'avic', 'bvic', 'cvic'), 'lab3'),
               '4': (('lab4', 'avicx', 'bvicx'), 'lab4'),
@@ -115,8 +115,13 @@ while args != 'q':
             for command in commands[argument]:
                 config.append(command + '\n')
         except:
-            print('Unexpected abbr\n')
-            break
+            if args == 'h':
+                print(TASM_PATH + "\\" + RUN_FILE)
+                os.system(HIEW_PATH)
+                #subprocess.Popen([])
+            else:
+                print('Unexpected abbr\n')
+                break
 
     for command in end_commands:
         config.append(command + '\n')
@@ -126,8 +131,7 @@ while args != 'q':
 
     clean_non_executable()
     process = subprocess.Popen(DOSBOX_PATH)
-    # if args == 'h':
-    #  subprocess.call([HIEW_PATH])
+
 
     args = input()
     while args.strip() == '':

