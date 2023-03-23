@@ -74,9 +74,11 @@ find_next:
 
 exit:
 	Ret
-fmask db '*.com', 0 ;Область данных антивируса
-priznak db 69h
-old_bytes_offset dw 13Ah
-sign db 0BBh, 00h, 01h, 8Ah, 86h, 41h, 02h, 8Ah, 0A6h, 42h
-file_body equ $ 	;указываем константу с помощью equ
+
+    fmask db '*.com', 0 ;Область данных антивируса
+    priznak db 69h
+    old_bytes_offset dw 13Ah
+    sign db 0BBh, 00h, 01h, 8Ah, 86h, 41h, 02h, 8Ah, 0A6h, 42h
+    file_body equ $ 	;указываем константу с помощью equ
+
 end start
