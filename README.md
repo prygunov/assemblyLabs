@@ -1,5 +1,4 @@
 # Сборник работ по компьютерной вирусологии
-### СамГТУ, 2023 год
 
 Для работы необходим DosBOX версии 0.74-3: https://sourceforge.net/projects/dosbox/files/dosbox/0.74-3/DOSBox0.74-3-win32-installer.exe/download
 
